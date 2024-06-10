@@ -31,3 +31,6 @@ if(TARGET SDL2::SDL2main)
 endif()
 target_link_libraries(planar_quadrotor SDL2::SDL2 SDL2_gfx Eigen matplot)
 target_include_directories(planar_quadrotor PRIVATE ${PROJECT_SOURCE_DIR})
+
+file(COPY textures DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY SDL2d.dll DESTINATION ${CMAKE_BINARY_DIR})

@@ -3,6 +3,8 @@
 */
 #include "simulate.h"
 
+std::fstream plik;
+
 Eigen::MatrixXf LQR(PlanarQuadrotor &quadrotor, float dt) {
     /* Calculate LQR gain matrix */
     Eigen::MatrixXf Eye = Eigen::MatrixXf::Identity(6, 6);
@@ -15,9 +17,16 @@ Eigen::MatrixXf LQR(PlanarQuadrotor &quadrotor, float dt) {
     Eigen::MatrixXf K = Eigen::MatrixXf::Zero(6, 6);
     Eigen::Vector2f input = quadrotor.GravityCompInput();
 
-    Q.diagonal() << 10, 10, 10, 1, 10, 0.25 / 2 / M_PI;
-    R.row(0) << 0.1, 0.05;
-    R.row(1) << 0.05, 0.1;
+    plik.open("matrix.txt");
+
+    //Q.diagonal() << 10, 10, 10, 1, 10, 0.25 / 2 / M_PI;
+    Q.diagonal() << 0.004, 0.004, 400, 0.008, 0.045, 2 / 2 / M_PI;
+    //R.row(0) << 0.1, 0.05;
+    //R.row(1) << 0.05, 0.1;
+    R.row(0) << 30, 7;
+    R.row(1) << 7, 30;
+
+    plik.close();
 
     std::tie(A, B) = quadrotor.Linearize();
     A_discrete = Eye + dt * A;
@@ -40,9 +49,9 @@ int main(int argc, char* args[])
 
     /**
      * TODO: Extend simulation
-     * 1. Set goal state of the mouse when clicking left mouse button (transform the coordinates to the quadrotor world! see visualizer TODO list)
+     * done 1. Set goal state of the mouse when clicking left mouse button (transform the coordinates to the quadrotor world! see visualizer TODO list)
      *    [x, y, 0, 0, 0, 0]
-     * 2. Update PlanarQuadrotor from simulation when goal is changed
+     * done 2. Update PlanarQuadrotor from simulation when goal is changed
     */
     Eigen::VectorXf initial_state = Eigen::VectorXf::Zero(6);
     PlanarQuadrotor quadrotor(initial_state);
@@ -53,7 +62,7 @@ int main(int argc, char* args[])
      * For implemented LQR controller, it has to be [x, y, 0, 0, 0, 0]
     */
     Eigen::VectorXf goal_state = Eigen::VectorXf::Zero(6);
-    goal_state << -1, 7, 0, 0, 0, 0;
+    goal_state << 0, 0, 0, 0, 0, 0;
     quadrotor.SetGoal(goal_state);
     /* Timestep for the simulation */
     const float dt = 0.001;
@@ -79,6 +88,10 @@ int main(int argc, char* args[])
 
         while (!quit)
         {
+            Uint64 sprite = (SDL_GetTicks() / 100) % 6;
+            int direction = 0;
+            float pos = 0;
+            float click = 0;
             //events
             while (SDL_PollEvent(&e) != 0)
             {
@@ -91,8 +104,25 @@ int main(int argc, char* args[])
                     SDL_GetMouseState(&x, &y);
                     std::cout << "Mouse position: (" << x << ", " << y << ")" << std::endl;
                 }
+                else if (e.type == SDL_MOUSEBUTTONDOWN) {
+                    SDL_GetMouseState(&x, &y);
+                    click = x - 640;
+                    goal_state << x - 640, y - 360, 0, 0, 0, 0;
+                    quadrotor.SetGoal(goal_state);
+                }
                 
             }
+
+            /*pos = quadrotor.GetState()[0];
+            if (pos < click) {
+                direction = -1;
+            }
+            else if (pos > click) {
+                direction = 1;
+            }
+            else {
+                direction = 0;
+            }*/
 
             SDL_Delay((int) dt * 1000);
 
@@ -100,7 +130,7 @@ int main(int argc, char* args[])
             SDL_RenderClear(gRenderer.get());
 
             /* Quadrotor rendering step */
-            quadrotor_visualizer.render(gRenderer);
+            quadrotor_visualizer.render(gRenderer, sprite, direction);
 
             SDL_RenderPresent(gRenderer.get());
 

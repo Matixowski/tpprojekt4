@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <memory>
+#include <fstream>
 
 #include <Eigen/Dense>
 #include <SDL.h>
