@@ -2,6 +2,7 @@
  * SDL window creation adapted from https://github.com/isJuhn/DoublePendulum
 */
 #include "simulate.h"
+#include "matplot/matplot.h"
 
 std::fstream plik;
 
@@ -71,8 +72,8 @@ int main(int argc, char* args[])
 
     /**
      * TODO: Plot x, y, theta over time
-     * 1. Update x, y, theta history vectors to store trajectory of the quadrotor
-     * 2. Plot trajectory using matplot++ when key 'p' is clicked
+     * done 1. Update x, y, theta history vectors to store trajectory of the quadrotor
+     * done 2. Plot trajectory using matplot++ when key 'p' is clicked
     */
     std::vector<float> x_history;
     std::vector<float> y_history;
@@ -92,6 +93,9 @@ int main(int argc, char* args[])
             int direction = 0;
             float pos = 0;
             float click = 0;
+            x_history.push_back(quadrotor.GetState()[0]);
+            y_history.push_back(-quadrotor.GetState()[1]);
+            theta_history.push_back(quadrotor.GetState()[2]);
             //events
             while (SDL_PollEvent(&e) != 0)
             {
@@ -110,7 +114,12 @@ int main(int argc, char* args[])
                     goal_state << x - 640, y - 360, 0, 0, 0, 0;
                     quadrotor.SetGoal(goal_state);
                 }
-                
+                else if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_p) {
+                    matplot::plot(x_history, y_history);
+                    matplot::xlabel("X");
+                    matplot::ylabel("Y");
+                    matplot::show();
+                }
             }
 
             /*pos = quadrotor.GetState()[0];
