@@ -38,7 +38,7 @@ void PlanarQuadrotorVisualizer::render(std::shared_ptr<SDL_Renderer> &gRenderer,
     SDL_Rect srcrect = { sprite*54, 0, 54, 34 };
     SDL_Rect dstrect = { q_x - 27, q_y - 17, 54, 34 };
 
-    SDL_RenderCopy(gRenderer.get(), text, &srcrect, &dstrect);
+    SDL_RenderCopyEx(gRenderer.get(), text, &srcrect, &dstrect, -q_theta*180/M_PI, NULL, SDL_FLIP_NONE);
     SDL_RenderPresent(gRenderer.get());
 
 }
