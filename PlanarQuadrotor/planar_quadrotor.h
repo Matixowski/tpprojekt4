@@ -20,6 +20,7 @@ public:
     Eigen::VectorXf GetState();
     Eigen::VectorXf GetControlState();
     Eigen::Vector2f GravityCompInput();
+    Eigen::Vector2f GetInput();
     std::tuple<Eigen::MatrixXf, Eigen::MatrixXf> Linearize();
     void SetInput(Eigen::Vector2f input);
     void DoCalcTimeDerivatives(); // Shamelessly copied from Drake API

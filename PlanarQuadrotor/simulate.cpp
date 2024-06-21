@@ -2,7 +2,6 @@
  * SDL window creation adapted from https://github.com/isJuhn/DoublePendulum
 */
 #include "simulate.h"
-#include "matplot/matplot.h"
 
 std::fstream plik;
 
@@ -45,6 +44,7 @@ int main(int argc, char* args[])
 {
     std::shared_ptr<SDL_Window> gWindow = nullptr;
     std::shared_ptr<SDL_Renderer> gRenderer = nullptr;
+    std::shared_ptr<Mix_Chunk> gSoundEffect = nullptr;
     const int SCREEN_WIDTH = 1280;
     const int SCREEN_HEIGHT = 720;
 
@@ -79,7 +79,7 @@ int main(int argc, char* args[])
     std::vector<float> y_history;
     std::vector<float> theta_history;
 
-    if (init(gWindow, gRenderer, SCREEN_WIDTH, SCREEN_HEIGHT) >= 0)
+    if (init(gWindow, gRenderer, gSoundEffect, SCREEN_WIDTH, SCREEN_HEIGHT) >= 0)
     {
         SDL_Event e;
         bool quit = false;
@@ -122,6 +122,8 @@ int main(int argc, char* args[])
                 }
             }
 
+            Mix_Volume(-1, abs((quadrotor.GetInput()[0]+quadrotor.GetInput()[1])/20*MIX_MAX_VOLUME));
+
             /*pos = quadrotor.GetState()[0];
             if (pos < click) {
                 direction = -1;
@@ -148,13 +150,15 @@ int main(int argc, char* args[])
             quadrotor.Update(dt);
         }
     }
+    Mix_FreeChunk(gSoundEffect.get());
+    Mix_Quit();
     SDL_Quit();
     return 0;
 }
 
-int init(std::shared_ptr<SDL_Window>& gWindow, std::shared_ptr<SDL_Renderer>& gRenderer, const int SCREEN_WIDTH, const int SCREEN_HEIGHT)
+int init(std::shared_ptr<SDL_Window>& gWindow, std::shared_ptr<SDL_Renderer>& gRenderer, std::shared_ptr<Mix_Chunk>& gSoundEffect, const int SCREEN_WIDTH, const int SCREEN_HEIGHT)
 {
-    if (SDL_Init(SDL_INIT_VIDEO) >= 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) >= 0)
     {
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
         gWindow = std::shared_ptr<SDL_Window>(SDL_CreateWindow("Planar Quadrotor", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN), SDL_DestroyWindow);
@@ -164,6 +168,16 @@ int init(std::shared_ptr<SDL_Window>& gWindow, std::shared_ptr<SDL_Renderer>& gR
     else
     {
         std::cout << "SDL_ERROR: " << SDL_GetError() << std::endl;
+        return -1;
+    }
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) >= 0)
+    {
+        gSoundEffect = std::shared_ptr<Mix_Chunk>(Mix_LoadWAV("drone-flying.wav"));
+        Mix_PlayChannel(-1, gSoundEffect.get(), -1);
+    }
+    else
+    {
+        std::cout << "SDL_mixer could not initialize! SDL_mixer Error:" << Mix_GetError() << std::endl;
         return -1;
     }
     return 0;

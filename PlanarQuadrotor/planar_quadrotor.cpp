@@ -36,6 +36,10 @@ Eigen::Vector2f PlanarQuadrotor::GravityCompInput() {
     return Eigen::Vector2f::Constant(m * g / 2);
 }
 
+Eigen::Vector2f  PlanarQuadrotor::GetInput() {
+    return input;
+}
+
 std::tuple<Eigen::MatrixXf, Eigen::MatrixXf> PlanarQuadrotor::Linearize() {
     /* Extract parameters */
     float m = params[0];

@@ -8,3 +8,7 @@
 [submodule "SDL2_gfx"]
 	path = SDL2_gfx
 	url = https://github.com/mupfdev/SDL2_gfx
+[submodule "SDL_mixer"]
+	path = SDL_mixer
+	url = https://github.com/libsdl-org/SDL_mixer
+	branch = SDL2
