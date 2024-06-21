@@ -3,8 +3,6 @@
 */
 #include "simulate.h"
 
-std::fstream plik;
-
 Eigen::MatrixXf LQR(PlanarQuadrotor &quadrotor, float dt) {
     /* Calculate LQR gain matrix */
     Eigen::MatrixXf Eye = Eigen::MatrixXf::Identity(6, 6);
@@ -17,16 +15,9 @@ Eigen::MatrixXf LQR(PlanarQuadrotor &quadrotor, float dt) {
     Eigen::MatrixXf K = Eigen::MatrixXf::Zero(6, 6);
     Eigen::Vector2f input = quadrotor.GravityCompInput();
 
-    plik.open("matrix.txt");
-
-    //Q.diagonal() << 10, 10, 10, 1, 10, 0.25 / 2 / M_PI;
     Q.diagonal() << 0.004, 0.004, 400, 0.008, 0.045, 2 / 2 / M_PI;
-    //R.row(0) << 0.1, 0.05;
-    //R.row(1) << 0.05, 0.1;
     R.row(0) << 30, 7;
     R.row(1) << 7, 30;
-
-    plik.close();
 
     std::tie(A, B) = quadrotor.Linearize();
     A_discrete = Eye + dt * A;
@@ -78,6 +69,8 @@ int main(int argc, char* args[])
     std::vector<float> x_history;
     std::vector<float> y_history;
     std::vector<float> theta_history;
+    float target_x = 0;
+    float target_y = 0;
 
     if (init(gWindow, gRenderer, gSoundEffect, SCREEN_WIDTH, SCREEN_HEIGHT) >= 0)
     {
@@ -90,9 +83,6 @@ int main(int argc, char* args[])
         while (!quit)
         {
             Uint64 sprite = (SDL_GetTicks() / 100) % 6;
-            int direction = 0;
-            float pos = 0;
-            float click = 0;
             x_history.push_back(quadrotor.GetState()[0]);
             y_history.push_back(-quadrotor.GetState()[1]);
             theta_history.push_back(quadrotor.GetState()[2]);
@@ -110,7 +100,8 @@ int main(int argc, char* args[])
                 }
                 else if (e.type == SDL_MOUSEBUTTONDOWN) {
                     SDL_GetMouseState(&x, &y);
-                    click = x - 640;
+                    target_x = x;
+                    target_y = y;
                     goal_state << x - 640, y - 360, 0, 0, 0, 0;
                     quadrotor.SetGoal(goal_state);
                 }
@@ -124,24 +115,13 @@ int main(int argc, char* args[])
 
             Mix_Volume(-1, abs((quadrotor.GetInput()[0]+quadrotor.GetInput()[1])/20*MIX_MAX_VOLUME));
 
-            /*pos = quadrotor.GetState()[0];
-            if (pos < click) {
-                direction = -1;
-            }
-            else if (pos > click) {
-                direction = 1;
-            }
-            else {
-                direction = 0;
-            }*/
-
             SDL_Delay((int) dt * 1000);
 
             SDL_SetRenderDrawColor(gRenderer.get(), 0xFF, 0xFF, 0xFF, 0xFF);
             SDL_RenderClear(gRenderer.get());
 
             /* Quadrotor rendering step */
-            quadrotor_visualizer.render(gRenderer, sprite, direction);
+            quadrotor_visualizer.render(gRenderer, sprite, target_x, target_y);
 
             SDL_RenderPresent(gRenderer.get());
 

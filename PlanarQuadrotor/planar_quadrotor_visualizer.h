@@ -12,5 +12,5 @@ private:
     PlanarQuadrotor *quadrotor_ptr;
 public:
     PlanarQuadrotorVisualizer(PlanarQuadrotor *quadrotor_ptr);
-    void render(std::shared_ptr<SDL_Renderer> &gRenderer, Uint64 sprite, int direction);
+    void render(std::shared_ptr<SDL_Renderer> &gRenderer, Uint64 sprite, float target_x, float target_y);
 };
